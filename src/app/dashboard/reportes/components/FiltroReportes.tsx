@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { IconMicrophone } from "@tabler/icons-react";
 import { servicioReportes, RespuestaBasica, ResultadoReporte } from "@/api/reportes.service";
+import { enviarComandoConFallback, enviarAudioConFallback } from "../utils/comandos";
 
 interface FiltroReportesProps {
   tipoReporte: string;
@@ -98,7 +99,7 @@ export function FiltroReportes({
     setMensajeVoz("Procesando comando...");
 
     try {
-      const resultado = await servicioReportes.reportePorTexto(comandoTexto, true);
+      const resultado = await enviarComandoConFallback(comandoTexto);
       console.log("[Reportes] Resultado texto:", resultado);
 
       if (resultado.success && resultado.reporte) {
@@ -126,7 +127,7 @@ export function FiltroReportes({
     setMensajeVoz("Procesando audio...");
 
     try {
-      const resultado = await servicioReportes.reportePorAudio(audioBits, "reporte.webm");
+      const resultado = await enviarAudioConFallback(audioBits);
       console.log("[Reportes] Resultado audio:", resultado);
 
       if (resultado.success && resultado.reporte) {
