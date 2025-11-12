@@ -49,6 +49,11 @@ const data = {
       icon: IconFileAi,
     },
     {
+      title: "Reportes",
+      url: "/dashboard/reportes",
+      icon: IconReport,
+    },
+    {
       title: "Productos",
       url: "/dashboard/productos",
       icon: IconListDetails,
