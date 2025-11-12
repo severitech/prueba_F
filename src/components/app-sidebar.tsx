@@ -44,6 +44,11 @@ const data = {
       icon: IconDashboard,
     },
     {
+      title: "RandomForest",
+      url: "/dashboard/random-forest",
+      icon: IconFileAi,
+    },
+    {
       title: "Productos",
       url: "/dashboard/productos",
       icon: IconListDetails,
