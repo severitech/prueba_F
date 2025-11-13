@@ -4,7 +4,7 @@ import {
   MantenimientoCompleto,
   DatosCrearMantenimiento,
   DatosActualizarMantenimiento,
-  FiltrosMantenimiento,
+  
   RespuestaMantenimientos,
   RespuestaMantenimiento
 } from '@/interface/mantenimiento';
@@ -31,7 +31,7 @@ class ServicioMantenimiento {
   /**
    * Obtener todos los mantenimientos con filtros
    */
-  async obtenerMantenimientos(filtros: FiltrosMantenimiento = {}): Promise<RespuestaMantenimientos> {
+  async obtenerMantenimientos(filtros: any = {}): Promise<RespuestaMantenimientos> {
     try {
       const parametros = new URLSearchParams();
       
@@ -255,7 +255,7 @@ class ServicioMantenimiento {
   /**
    * Obtener mantenimientos por usuario
    */
-  async obtenerMantenimientosPorUsuario(usuarioId: number, filtros: FiltrosMantenimiento = {}): Promise<RespuestaMantenimientos> {
+  async obtenerMantenimientosPorUsuario(usuarioId: number, filtros: any = {}): Promise<RespuestaMantenimientos> {
     try {
       const parametros = new URLSearchParams();
       parametros.append('usuario', usuarioId.toString());
