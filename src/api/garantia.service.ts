@@ -26,7 +26,7 @@ class ServicioGarantias {
       const parametros = new URLSearchParams()
       
       if (filtros.buscar) parametros.append('search', filtros.buscar)
-      if (filtros.producto_id) parametros.append('producto_id', filtros.producto_id.toString())
+      if (filtros.producto?.id) parametros.append('producto_id', filtros.producto.id.toString())
       if (filtros.tiempo_min) parametros.append('tiempo_min', filtros.tiempo_min.toString())
       if (filtros.tiempo_max) parametros.append('tiempo_max', filtros.tiempo_max.toString())
       if (filtros.pagina) parametros.append('page', filtros.pagina.toString())
@@ -124,7 +124,7 @@ class ServicioGarantias {
       const cuerpo = {
         descripcion: datosGarantia.descripcion,
         tiempo: parseInt(datosGarantia.tiempo.toString()),
-        producto_id: datosGarantia.producto_id
+        producto_id: datosGarantia.producto.id
       }
 
       console.log('📤 Creando garantía:', cuerpo);
@@ -304,7 +304,7 @@ class ServicioGarantias {
       errores.push('El tiempo de garantía debe ser mayor a 0 meses')
     }
 
-    if (!garantia.producto_id) {
+    if (!garantia.producto?.id) {
       errores.push('El producto es requerido')
     }
 
