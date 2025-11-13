@@ -55,35 +55,63 @@ export function FiltroReportes({
   // Audio - Iniciar grabación
   const iniciarGrabacion = async () => {
     try {
-      setEstadoVoz("grabando");
-      setMensajeVoz("Grabando...");
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setGrabandoAudio(true);
+      setMensajeVoz("Grabando... Habla ahora");
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
       streamRef.current = stream;
 
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
 
       const chunks: BlobPart[] = [];
-      mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+      
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "audio/webm" });
-        setAudioBits(blob);
-        setMensajeVoz("Audio capturado. Procesando...");
+        if (chunks.length > 0) {
+          const blob = new Blob(chunks, { type: "audio/webm" });
+          setAudioBits(blob);
+          setMensajeVoz(`✓ Audio capturado (${(blob.size / 1024).toFixed(2)} KB). Click en "Procesar Audio"`);
+          setGrabandoAudio(false);
+        } else {
+          setMensajeVoz("✗ No se capturó audio. Intenta de nuevo");
+          setGrabandoAudio(false);
+        }
       };
 
       mediaRecorder.start();
+      
+      // Auto-stop después de 30 segundos
+      setTimeout(() => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+          mediaRecorderRef.current.stop();
+          streamRef.current?.getTracks().forEach((track) => track.stop());
+        }
+      }, 30000);
     } catch (err) {
-      setMensajeVoz("Error accediendo al micrófono");
-      setEstadoVoz("idle");
+      setMensajeVoz("✗ Error accediendo al micrófono. Verifica permisos");
+      setGrabandoAudio(false);
       console.error("[Reportes] Error grabación:", err);
     }
   };
 
   // Audio - Detener grabación
   const detenerGrabacion = () => {
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
+    try {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+        mediaRecorderRef.current.stop();
+      }
       streamRef.current?.getTracks().forEach((track) => track.stop());
+      setGrabandoAudio(false);
+    } catch (err) {
+      console.error("[Reportes] Error deteniendo grabación:", err);
       setGrabandoAudio(false);
     }
   };
@@ -438,41 +466,54 @@ export function FiltroReportes({
           {/* Comando por Audio */}
           <TabsContent value="audio" className="space-y-4">
             <div className="space-y-3">
-              <div className="p-4 rounded-lg bg-muted">
-                <p className="text-sm text-muted-foreground mb-3">
-                  Graba tu comando de voz (máx 30 segundos)
+              <div className="p-4 rounded-lg bg-muted border-2 border-dashed">
+                <p className="text-sm text-muted-foreground mb-4">
+                  🎤 Graba tu comando de voz (máx 30 segundos)
                 </p>
-                <div className="flex gap-2">
-                  {!grabandoAudio ? (
-                    <Button
-                      onClick={iniciarGrabacion}
-                      disabled={estadoVoz !== "idle"}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      <IconMicrophone className="mr-2 h-4 w-4" />
-                      Iniciar Grabación
-                    </Button>
-                  ) : (
+                
+                {!grabandoAudio ? (
+                  <Button
+                    onClick={iniciarGrabacion}
+                    disabled={estadoVoz !== "idle"}
+                    variant="default"
+                    size="lg"
+                    className="w-full"
+                  >
+                    <IconMicrophone className="mr-2 h-5 w-5" />
+                    Iniciar Grabación
+                  </Button>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="h-3 w-3 rounded-full bg-red-500 animate-pulse"></div>
+                      <p className="text-sm font-medium">Grabando...</p>
+                    </div>
                     <Button
                       onClick={detenerGrabacion}
                       variant="destructive"
-                      className="flex-1"
+                      size="lg"
+                      className="w-full"
                     >
-                      Detener Grabación
+                      ⏹️ Detener Grabación
                     </Button>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
 
               {audioBits && (
-                <Button
-                  onClick={enviarAudio}
-                  disabled={estadoVoz !== "idle"}
-                  className="w-full"
-                >
-                  {estadoVoz === "procesando" ? "Procesando..." : "Procesar Audio"}
-                </Button>
+                <div className="p-3 rounded-lg bg-green-50 border border-green-200">
+                  <p className="text-sm text-green-800 mb-3">
+                    ✓ Audio capturado correctamente
+                  </p>
+                  <Button
+                    onClick={enviarAudio}
+                    disabled={estadoVoz !== "idle"}
+                    className="w-full"
+                    variant="default"
+                  >
+                    {estadoVoz === "procesando" ? "Procesando..." : "🚀 Procesar Audio"}
+                  </Button>
+                </div>
               )}
             </div>
           </TabsContent>
@@ -480,9 +521,21 @@ export function FiltroReportes({
 
         {/* Mensaje de estado */}
         {mensajeVoz && (
-          <Card className={estadoVoz === "procesando" ? "border-blue-200 bg-blue-50" : "border-green-200 bg-green-50"}>
+          <Card className={
+            estadoVoz === "procesando" 
+              ? "border-blue-200 bg-blue-50" 
+              : estadoVoz === "grabando"
+              ? "border-yellow-200 bg-yellow-50"
+              : "border-green-200 bg-green-50"
+          }>
             <CardContent className="pt-4">
-              <p className={`text-sm ${estadoVoz === "procesando" ? "text-blue-800" : "text-green-800"}`}>
+              <p className={`text-sm font-medium ${
+                estadoVoz === "procesando" 
+                  ? "text-blue-800" 
+                  : estadoVoz === "grabando"
+                  ? "text-yellow-800"
+                  : "text-green-800"
+              }`}>
                 {mensajeVoz}
               </p>
             </CardContent>
