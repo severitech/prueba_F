@@ -1,5 +1,5 @@
 // api/productos.service.ts
-import { Producto, DatosCrearProducto, DatosActualizarProducto, RespuestaProductos, RespuestaProducto, FiltrosProductosInterface } from '@/interface/productos'
+import { Producto, DatosCrearProducto, DatosActualizarProducto, RespuestaProducto, FiltrosProductosInterface } from '@/interface/productos'
 import { utilidadesAutenticacion } from '@/lib/autenticacion'
 
 /**
@@ -476,3 +476,15 @@ class ServicioProductos {
 }
 
 export const servicioProductos = new ServicioProductos()
+
+export interface RespuestaProductos {
+  exito: boolean;
+  datos: Producto[];
+  mensaje?: string;
+  paginacion?: {
+    total: number;
+    paginaActual: number;
+    totalPaginas: number;
+    limite: number;
+  };
+}
