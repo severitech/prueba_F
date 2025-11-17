@@ -564,16 +564,21 @@ class ServicioPromociones {
       const text = await respuesta.text();
       console.log("📥 Respuesta del backend (raw):", text);
 
-      let datos: Record<string, unknown> = {}; // Cambiado de 'any' a un tipo más específico
+      let datosParseados: unknown = {};
       try {
-        datos = text ? JSON.parse(text) : {};
+        datosParseados = text ? JSON.parse(text) : {};
       } catch {
-        datos = { raw: text }; // Eliminada la variable 'e' no utilizada
+        datosParseados = { raw: text };
       }
 
       if (!respuesta.ok) {
-        console.error("❌ [FRONT] Error del backend:", datos);
+        const errorData =
+          typeof datosParseados === "object" && datosParseados !== null
+            ? (datosParseados as Record<string, unknown>)
+            : { detail: text };
+        console.error("❌ [FRONT] Error del backend:", errorData);
         let mensajeError = `Error ${respuesta.status}: ${respuesta.statusText}`;
+<<<<<<< HEAD
         if (datos.detail) {
           mensajeError = datos.detail.toString();
         } else if (datos.message) {
@@ -589,19 +594,60 @@ class ServicioPromociones {
             .join("; ");
           if (erroresCampo) {
             mensajeError = erroresCampo;
+=======
+
+        const detailValue = errorData["detail"];
+        if (typeof detailValue === "string") {
+          mensajeError = detailValue;
+        } else if (Array.isArray(detailValue)) {
+          mensajeError = detailValue.map(String).join(", ");
+        } else {
+          const messageValue = errorData["message"];
+          if (typeof messageValue === "string") {
+            mensajeError = messageValue;
+          } else if (Array.isArray(messageValue)) {
+            mensajeError = messageValue.map(String).join(", ");
+          } else {
+            const erroresCampo = Object.entries(errorData)
+              .map(([campo, errores]) => {
+                const valor = Array.isArray(errores)
+                  ? errores.map(String).join(", ")
+                  : String(errores);
+                return `${campo}: ${valor}`;
+              })
+              .join("; ")
+              .trim();
+            if (erroresCampo) {
+              mensajeError = erroresCampo;
+            }
+>>>>>>> 558246ba9255c02c935cf188917bb56a7a842215
           }
         }
-        // Mostrar alerta en el navegador si existe
         if (typeof window !== "undefined") {
           window.alert("Error al crear producto-promoción: " + mensajeError);
         }
         throw new Error(mensajeError);
       }
 
+      if (
+        typeof datosParseados !== "object" ||
+        datosParseados === null ||
+        !("id" in datosParseados) ||
+        !("fecha" in datosParseados) ||
+        !("producto_id" in datosParseados) ||
+        !("promocion_id" in datosParseados)
+      ) {
+        throw new Error(
+          "Respuesta inválida del servidor al crear producto-promoción"
+        );
+      }
+
+      const datos = datosParseados as ProductoPromocion;
+
       console.log("✅ [FRONT] Producto-promoción creado exitosamente:", datos);
       return {
         exito: true,
-        datos: datos,
+        datos,
         mensaje: "Producto agregado a promoción exitosamente",
       };
     } catch (error) {

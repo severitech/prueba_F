@@ -1,19 +1,102 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { servicioReportes, RespuestaBasica, ResultadoReporte } from "@/api/reportes.service";
-import { Acciones, FiltroReportes, TabsReportes } from "./components";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import {
+  servicioReportes,
+  RespuestaBasica,
+  ResultadoReporte,
+} from "@/api/reportes.service";
+import {
+  Acciones,
+  FiltroReportes,
+  TabsReportes,
+} from "./components";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+// 🆕 Importar helpers de exportación del frontend
+import {
+  exportarExcel,
+  exportarPDF,
+  exportarKPIsExcel,
+  exportarKPIsPDF,
+} from "@/app/dashboard/reportes/utils/exportar";
 
 // Página de Reportes - Generador de reportes dinámicos con filtros estáticos y por voz
 export default function ReportesPage() {
-  const [tipoReporte, setTipoReporte] = useState<"ventas" | "productos" | "clientes" | "inventario">("ventas");
+  const [tipoReporte, setTipoReporte] = useState<
+    "ventas" | "productos" | "clientes" | "inventario"
+  >("ventas");
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<ResultadoReporte | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [filtros, setFiltros] = useState<Record<string, any>>({});
 
-  // Generar reporte basado en tipo y filtros
+  // 🆕 Auto–exportar si el comando (texto/voz) pidió "en pdf" o "en excel"
+  const autoExportarSiSePidioFormato = (
+    respuesta: RespuestaBasica<ResultadoReporte>,
+    tipo: "ventas" | "productos" | "clientes" | "inventario"
+  ) => {
+    const formato = respuesta.metadata?.formato_solicitado as
+      | "pdf"
+      | "excel"
+      | undefined;
+
+    if (!formato) return; // el comando no pidió formato → solo visualización
+
+    const rep = respuesta.reporte;
+    if (!rep) return;
+
+    const datos = Array.isArray(rep.datos)
+      ? rep.datos
+      : rep.datos
+      ? [rep.datos]
+      : [];
+
+    const kpis =
+      rep.kpis && typeof rep.kpis === "object"
+        ? (rep.kpis as Record<string, any>)
+        : {};
+
+    const baseFilename = `reporte_${tipo}`;
+
+    if (formato === "pdf") {
+      if (datos.length > 0) {
+        // Datos en PDF
+        exportarPDF(datos, {
+          filename: baseFilename,
+          title: `Reporte de ${tipo}`,
+        });
+      } else if (Object.keys(kpis).length > 0) {
+        // KPIs en PDF
+        exportarKPIsPDF(kpis, {
+          filename: `${baseFilename}_kpis`,
+          title: `KPIs de ${tipo}`,
+        });
+      }
+    } else if (formato === "excel") {
+      if (datos.length > 0) {
+        // Datos en Excel
+        exportarExcel(datos, {
+          filename: baseFilename,
+          sheetName: tipo,
+        });
+      } else if (Object.keys(kpis).length > 0) {
+        // KPIs en Excel
+        exportarKPIsExcel(kpis, {
+          filename: `${baseFilename}_kpis`,
+          sheetName: `KPIs_${tipo}`,
+        });
+      }
+    }
+  };
+
+  // Generar reporte basado en tipo y filtros (filtros estáticos)
   const generarReporte = async (tipo: string, params?: Record<string, any>) => {
     setLoading(true);
     setError(null);
@@ -47,9 +130,13 @@ export default function ReportesPage() {
       }
 
       setResultado(respuesta.reporte || null);
-      console.log(`[Reportes] Reporte generado exitosamente`, respuesta.reporte);
+      console.log(
+        `[Reportes] Reporte generado exitosamente`,
+        respuesta.reporte
+      );
     } catch (err) {
-      const mensaje = err instanceof Error ? err.message : "Error desconocido";
+      const mensaje =
+        err instanceof Error ? err.message : "Error desconocido";
       setError(mensaje);
       console.error(`[Reportes] Error:`, mensaje);
     } finally {
@@ -66,16 +153,33 @@ export default function ReportesPage() {
 
   // Cambiar tipo de reporte
   const handleCambiarTipo = (tipo: string) => {
-    const tipoValido = tipo as "ventas" | "productos" | "clientes" | "inventario";
+    const tipoValido = tipo as
+      | "ventas"
+      | "productos"
+      | "clientes"
+      | "inventario";
     setTipoReporte(tipoValido);
     setResultado(null);
     generarReporte(tipoValido, filtros);
   };
 
-  // Manejar resultados de comandos por voz
-  const handleResultadoVoz = (respuesta: RespuestaBasica<ResultadoReporte>) => {
+  // 🧠 Manejar resultados de comandos por voz / texto dinámicos (IA)
+  const handleResultadoVoz = (
+    respuesta: RespuestaBasica<ResultadoReporte>
+  ) => {
     console.log("[Reportes] Resultado voz recibido:", respuesta);
-    setResultado(respuesta.reporte || null);
+
+    if (!respuesta.success) {
+      setError(respuesta.error || "Error al procesar comando de voz");
+      setResultado(null);
+      return;
+    }
+
+    const rep = respuesta.reporte || null;
+    setResultado(rep);
+
+    // 🆕 Si el comando decía "en pdf / en excel", auto–exportar
+    autoExportarSiSePidioFormato(respuesta, tipoReporte);
   };
 
   return (
@@ -83,12 +187,15 @@ export default function ReportesPage() {
       {/* Encabezado */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Reportes</h1>
-        <p className="text-muted-foreground">Genera y visualiza reportes de ventas, productos, clientes e inventario</p>
+        <p className="text-muted-foreground">
+          Genera y visualiza reportes de ventas, productos, clientes e
+          inventario
+        </p>
       </div>
 
       {/* Acciones y Filtros */}
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-4">
-        <Acciones 
+        <Acciones
           tipoReporte={tipoReporte}
           loading={loading}
           onGenerarReporte={() => generarReporte(tipoReporte)}
@@ -121,7 +228,9 @@ export default function ReportesPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-center space-x-2">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-              <p className="text-sm text-muted-foreground">Generando reporte...</p>
+              <p className="text-sm text-muted-foreground">
+                Generando reporte...
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -132,14 +241,13 @@ export default function ReportesPage() {
           <CardHeader>
             <CardTitle>Resultados del Reporte</CardTitle>
             <CardDescription>
-              {resultado.total ? `Total de registros: ${resultado.total}` : "Reporte generado"}
+              {resultado.total
+                ? `Total de registros: ${resultado.total}`
+                : "Reporte generado"}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <TabsReportes 
-              tipoReporte={tipoReporte}
-              resultado={resultado}
-            />
+            <TabsReportes tipoReporte={tipoReporte} resultado={resultado} />
           </CardContent>
         </Card>
       )}
@@ -147,7 +255,10 @@ export default function ReportesPage() {
       {!resultado && !loading && !error && (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-muted-foreground">Selecciona filtros y genera un reporte para ver los resultados aquí</p>
+            <p className="text-muted-foreground">
+              Selecciona filtros y genera un reporte para ver los resultados
+              aquí
+            </p>
           </CardContent>
         </Card>
       )}
