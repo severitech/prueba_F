@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 
-=======
->>>>>>> 558246ba9255c02c935cf188917bb56a7a842215
 import { utilidadesAutenticacion } from "@/lib/autenticacion";
 
 /** ====== Tipos base ====== */
