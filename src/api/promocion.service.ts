@@ -578,13 +578,12 @@ class ServicioPromociones {
             : { detail: text };
         console.error("❌ [FRONT] Error del backend:", errorData);
         let mensajeError = `Error ${respuesta.status}: ${respuesta.statusText}`;
-<<<<<<< HEAD
-        if (datos.detail) {
-          mensajeError = datos.detail.toString();
-        } else if (datos.message) {
-          mensajeError = datos.message.toString();
-        } else if (typeof datos === "object") {
-          const erroresCampo = Object.entries(datos)
+        if (errorData.detail) {
+          mensajeError = errorData.detail.toString();
+        } else if (errorData.message) {
+          mensajeError = errorData.message.toString();
+        } else if (typeof errorData === "object") {
+          const erroresCampo = Object.entries(errorData)
             .map(
               ([campo, errores]) =>
                 `${campo}: ${
@@ -593,34 +592,7 @@ class ServicioPromociones {
             )
             .join("; ");
           if (erroresCampo) {
-            mensajeError = erroresCampo;
-=======
-
-        const detailValue = errorData["detail"];
-        if (typeof detailValue === "string") {
-          mensajeError = detailValue;
-        } else if (Array.isArray(detailValue)) {
-          mensajeError = detailValue.map(String).join(", ");
-        } else {
-          const messageValue = errorData["message"];
-          if (typeof messageValue === "string") {
-            mensajeError = messageValue;
-          } else if (Array.isArray(messageValue)) {
-            mensajeError = messageValue.map(String).join(", ");
-          } else {
-            const erroresCampo = Object.entries(errorData)
-              .map(([campo, errores]) => {
-                const valor = Array.isArray(errores)
-                  ? errores.map(String).join(", ")
-                  : String(errores);
-                return `${campo}: ${valor}`;
-              })
-              .join("; ")
-              .trim();
-            if (erroresCampo) {
-              mensajeError = erroresCampo;
-            }
->>>>>>> 558246ba9255c02c935cf188917bb56a7a842215
+            mensajeError += ` Detalles: ${erroresCampo}`;
           }
         }
         if (typeof window !== "undefined") {

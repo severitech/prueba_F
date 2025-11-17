@@ -4,10 +4,6 @@ import {
   MantenimientoCompleto,
   DatosCrearMantenimiento,
   DatosActualizarMantenimiento,
-<<<<<<< HEAD
-=======
-  
->>>>>>> 558246ba9255c02c935cf188917bb56a7a842215
   RespuestaMantenimientos,
   RespuestaMantenimiento
 } from '@/interface/mantenimiento';
