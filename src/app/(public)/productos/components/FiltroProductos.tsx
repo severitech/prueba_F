@@ -40,7 +40,7 @@ export default function FiltrosProductos({ filtros, onFiltrosChange, categorias,
     }
   };
 
-  const handleFiltroChange = (key: keyof FiltrosProductosInterface, value: any) => {
+  const handleFiltroChange = (key: keyof FiltrosProductosInterface, value: string | number | undefined) => {
     // Para filtros que no son búsqueda, aplicamos inmediatamente
     if (key !== 'buscar') {
       onFiltrosChange({

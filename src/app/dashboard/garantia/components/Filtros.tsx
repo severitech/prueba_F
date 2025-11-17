@@ -67,10 +67,10 @@ export default function FiltrosGarantias({
             id="producto"
             type="number"
             placeholder="Filtrar por producto..."
-            value={filtros.producto?.descripcion || ''}
+            value={filtros.producto?.id || ''} // Cambiado para usar el ID del producto
             onChange={(e) => onFiltrosChange({ 
               ...filtros, 
-              producto: e.target.value ? parseInt(e.target.value) : undefined 
+              producto: e.target.value ? { id: parseInt(e.target.value) } : undefined // Crear un objeto Producto con el ID
             })}
           />
         </div>
