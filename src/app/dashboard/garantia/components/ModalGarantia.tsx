@@ -16,38 +16,36 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+interface GarantiaFormData {
+  descripcion: string;
+  tiempo: number;
+  producto_id: number;
+}
+
 interface ModalGarantiaProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   garantia: Garantia | null;
-  onGuardar: (datos: any) => void;
+  onGuardar: (datos: GarantiaFormData) => void;
 }
 
 export default function ModalGarantia({ open, onOpenChange, garantia, onGuardar }: ModalGarantiaProps) {
-  const [formData, setFormData] = useState({
-    descripcion: '',
-    tiempo: '',
-    producto_id: ''
+  const getInitialFormData = () => ({
+    descripcion: garantia?.descripcion || '',
+    tiempo: garantia?.tiempo.toString() || '',
+    producto_id: garantia?.producto.id.toString() || ''
   });
 
+  const [formData, setFormData] = useState(getInitialFormData());
   const [errores, setErrores] = useState<string[]>([]);
 
   useEffect(() => {
-    if (garantia) {
-      setFormData({
-        descripcion: garantia.descripcion,
-        tiempo: garantia.tiempo.toString(),
-        producto_id: garantia.producto_id.toString()
-      });
-    } else {
-      setFormData({
-        descripcion: '',
-        tiempo: '',
-        producto_id: ''
-      });
+    if (open) {
+      setFormData(getInitialFormData());
+      setErrores([]);
     }
-    setErrores([]);
-  }, [garantia, open]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [garantia?.id, open]);
 
   const manejarSubmit = (e: React.FormEvent) => {
     e.preventDefault();
