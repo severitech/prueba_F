@@ -1,4 +1,3 @@
-// api/reportes.service.ts
 import { utilidadesAutenticacion } from "@/lib/autenticacion";
 
 /** ====== Tipos base ====== */
@@ -63,7 +62,10 @@ class ServicioReportes {
     return headers;
   }
 
-  private buildUrl(path: string, params?: Record<string, string | number | boolean>) {
+  private buildUrl(
+    path: string,
+    params?: Record<string, string | number | boolean>
+  ) {
     const url = new URL(`${this.urlBase}${path}`);
     if (params) {
       Object.entries(params).forEach(([k, v]) => {
@@ -71,6 +73,37 @@ class ServicioReportes {
       });
     }
     return url.toString();
+  }
+
+  /** 🆕 Detecta si el comando menciona explícitamente un formato (pdf / excel) */
+  private detectarFormatoEnComando(
+    comando: string | undefined | null
+  ): "pdf" | "excel" | null {
+    if (!comando) return null;
+    const c = comando.toLowerCase();
+
+    // Puedes ir afinando estas reglas con el tiempo
+    if (
+      c.includes(" en pdf") ||
+      c.includes(" formato pdf") ||
+      c.endsWith(" pdf") ||
+      c.startsWith("pdf ")
+    ) {
+      return "pdf";
+    }
+
+    if (
+      c.includes(" en excel") ||
+      c.includes(" formato excel") ||
+      c.includes(" en xlsx") ||
+      c.endsWith(" excel") ||
+      c.endsWith(" xlsx") ||
+      c.startsWith("excel ")
+    ) {
+      return "excel";
+    }
+
+    return null;
   }
 
   /** =============== VOZ / TEXTO =============== */
@@ -81,18 +114,36 @@ class ServicioReportes {
     usarIA = true
   ): Promise<RespuestaBasica<ResultadoReporte>> {
     try {
+      // 🧠 Detectar formato solicitado en el texto
+      const formatoComando = this.detectarFormatoEnComando(comando);
+
       const res = await fetch(`${this.urlBase}/reportes/voz/`, {
         method: "POST",
         headers: this.headersJSON(),
         body: JSON.stringify({ comando, usar_ia: usarIA }),
       });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || res.statusText);
-      return data as RespuestaBasica<ResultadoReporte>;
+
+      const respuesta = data as RespuestaBasica<ResultadoReporte>;
+
+      // 🆕 Guardar el formato solicitado en metadata (si lo hay)
+      if (formatoComando) {
+        respuesta.metadata = {
+          ...(respuesta.metadata || {}),
+          formato_solicitado: formatoComando,
+        };
+      }
+
+      return respuesta;
     } catch (e) {
       return {
         success: false,
-        error: e instanceof Error ? e.message : "Error procesando comando de voz (texto)",
+        error:
+          e instanceof Error
+            ? e.message
+            : "Error procesando comando de voz (texto)",
       };
     }
   }
@@ -113,11 +164,32 @@ class ServicioReportes {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || res.statusText);
-      return data as RespuestaBasica<ResultadoReporte>;
+
+      const respuesta = data as RespuestaBasica<ResultadoReporte>;
+
+      // 🧠 Usar el comando detectado por el backend para ver si pidió pdf/excel
+      const comandoDetectado =
+        respuesta.comando_detectado ||
+        respuesta.comando_procesado || // por si acaso
+        "";
+
+      const formatoComando = this.detectarFormatoEnComando(comandoDetectado);
+
+      if (formatoComando) {
+        respuesta.metadata = {
+          ...(respuesta.metadata || {}),
+          formato_solicitado: formatoComando,
+        };
+      }
+
+      return respuesta;
     } catch (e) {
       return {
         success: false,
-        error: e instanceof Error ? e.message : "Error procesando audio de voz",
+        error:
+          e instanceof Error
+            ? e.message
+            : "Error procesando audio de voz",
       };
     }
   }
@@ -127,7 +199,7 @@ class ServicioReportes {
   /** GET /reportes/ventas/?... (útil para dashboards) */
   async getVentas(params?: {
     fecha_inicio?: string; // "YYYY-MM-DD"
-    fecha_fin?: string;    // "YYYY-MM-DD"
+    fecha_fin?: string; // "YYYY-MM-DD"
     categoria?: string;
     estado?: string;
     monto_minimo?: number;
@@ -145,12 +217,18 @@ class ServicioReportes {
       if (!res.ok) throw new Error(data?.error || res.statusText);
       return data as RespuestaBasica<ResultadoReporte>;
     } catch (e) {
-      return { success: false, error: e instanceof Error ? e.message : "Error obteniendo ventas" };
+      return {
+        success: false,
+        error:
+          e instanceof Error ? e.message : "Error obteniendo ventas",
+      };
     }
   }
 
   /** POST /reportes/ventas/ (cuando quieras enviar filtros complejos por body) */
-  async postVentas(body: Record<string, any>): Promise<RespuestaBasica<ResultadoReporte>> {
+  async postVentas(
+    body: Record<string, any>
+  ): Promise<RespuestaBasica<ResultadoReporte>> {
     try {
       const res = await fetch(`${this.urlBase}/reportes/ventas/`, {
         method: "POST",
@@ -161,7 +239,13 @@ class ServicioReportes {
       if (!res.ok) throw new Error(data?.error || res.statusText);
       return data as RespuestaBasica<ResultadoReporte>;
     } catch (e) {
-      return { success: false, error: e instanceof Error ? e.message : "Error generando reporte de ventas" };
+      return {
+        success: false,
+        error:
+          e instanceof Error
+            ? e.message
+            : "Error generando reporte de ventas",
+      };
     }
   }
 
@@ -184,11 +268,17 @@ class ServicioReportes {
       if (!res.ok) throw new Error(data?.error || res.statusText);
       return data as RespuestaBasica<ResultadoReporte>;
     } catch (e) {
-      return { success: false, error: e instanceof Error ? e.message : "Error obteniendo productos" };
+      return {
+        success: false,
+        error:
+          e instanceof Error ? e.message : "Error obteniendo productos",
+      };
     }
   }
 
-  async postProductos(body: Record<string, any>): Promise<RespuestaBasica<ResultadoReporte>> {
+  async postProductos(
+    body: Record<string, any>
+  ): Promise<RespuestaBasica<ResultadoReporte>> {
     try {
       const res = await fetch(`${this.urlBase}/reportes/productos/`, {
         method: "POST",
@@ -199,7 +289,13 @@ class ServicioReportes {
       if (!res.ok) throw new Error(data?.error || res.statusText);
       return data as RespuestaBasica<ResultadoReporte>;
     } catch (e) {
-      return { success: false, error: e instanceof Error ? e.message : "Error generando reporte de productos" };
+      return {
+        success: false,
+        error:
+          e instanceof Error
+            ? e.message
+            : "Error generando reporte de productos",
+      };
     }
   }
 
@@ -222,11 +318,17 @@ class ServicioReportes {
       if (!res.ok) throw new Error(data?.error || res.statusText);
       return data as RespuestaBasica<ResultadoReporte>;
     } catch (e) {
-      return { success: false, error: e instanceof Error ? e.message : "Error obteniendo clientes" };
+      return {
+        success: false,
+        error:
+          e instanceof Error ? e.message : "Error obteniendo clientes",
+      };
     }
   }
 
-  async postClientes(body: Record<string, any>): Promise<RespuestaBasica<ResultadoReporte>> {
+  async postClientes(
+    body: Record<string, any>
+  ): Promise<RespuestaBasica<ResultadoReporte>> {
     try {
       const res = await fetch(`${this.urlBase}/reportes/clientes/`, {
         method: "POST",
@@ -237,7 +339,13 @@ class ServicioReportes {
       if (!res.ok) throw new Error(data?.error || res.statusText);
       return data as RespuestaBasica<ResultadoReporte>;
     } catch (e) {
-      return { success: false, error: e instanceof Error ? e.message : "Error generando reporte de clientes" };
+      return {
+        success: false,
+        error:
+          e instanceof Error
+            ? e.message
+            : "Error generando reporte de clientes",
+      };
     }
   }
 
@@ -259,11 +367,17 @@ class ServicioReportes {
       if (!res.ok) throw new Error(data?.error || res.statusText);
       return data as RespuestaBasica<ResultadoReporte>;
     } catch (e) {
-      return { success: false, error: e instanceof Error ? e.message : "Error obteniendo inventario" };
+      return {
+        success: false,
+        error:
+          e instanceof Error ? e.message : "Error obteniendo inventario",
+      };
     }
   }
 
-  async postInventario(body: Record<string, any>): Promise<RespuestaBasica<ResultadoReporte>> {
+  async postInventario(
+    body: Record<string, any>
+  ): Promise<RespuestaBasica<ResultadoReporte>> {
     try {
       const res = await fetch(`${this.urlBase}/reportes/inventario/`, {
         method: "POST",
@@ -274,7 +388,13 @@ class ServicioReportes {
       if (!res.ok) throw new Error(data?.error || res.statusText);
       return data as RespuestaBasica<ResultadoReporte>;
     } catch (e) {
-      return { success: false, error: e instanceof Error ? e.message : "Error generando reporte de inventario" };
+      return {
+        success: false,
+        error:
+          e instanceof Error
+            ? e.message
+            : "Error generando reporte de inventario",
+      };
     }
   }
 
