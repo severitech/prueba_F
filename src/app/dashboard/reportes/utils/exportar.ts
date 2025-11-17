@@ -343,3 +343,4 @@ export const exportarKPIsExcel = (
     return false;
   }
 };
+

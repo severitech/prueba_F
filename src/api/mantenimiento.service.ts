@@ -4,7 +4,6 @@ import {
   MantenimientoCompleto,
   DatosCrearMantenimiento,
   DatosActualizarMantenimiento,
-  FiltrosMantenimiento,
   RespuestaMantenimientos,
   RespuestaMantenimiento
 } from '@/interface/mantenimiento';

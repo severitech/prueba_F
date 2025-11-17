@@ -575,9 +575,9 @@ class ServicioPromociones {
         console.error("❌ [FRONT] Error del backend:", datos);
         let mensajeError = `Error ${respuesta.status}: ${respuesta.statusText}`;
         if (datos.detail) {
-          mensajeError = datos.detail;
+          mensajeError = datos.detail.toString();
         } else if (datos.message) {
-          mensajeError = datos.message;
+          mensajeError = datos.message.toString();
         } else if (typeof datos === "object") {
           const erroresCampo = Object.entries(datos)
             .map(

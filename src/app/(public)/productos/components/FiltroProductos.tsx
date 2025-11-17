@@ -11,7 +11,7 @@ import { Categoria } from '@/interface/categoria';
 import { SubCategoria } from '@/interface/subcategoria';
 
 interface Props {
-  filtros: FiltrosProductosInterface | undefined;
+  filtros: FiltrosProductosInterface;
   onFiltrosChange: (filtros: FiltrosProductosInterface) => void;
   categorias: Categoria[];
   subcategorias: SubCategoria[];
@@ -28,7 +28,9 @@ export default function FiltrosProductos({ filtros, onFiltrosChange, categorias,
   const aplicarBusqueda = () => {
     onFiltrosChange({
       ...filtrosSeguros,
-      buscar: busquedaTemp || undefined
+      buscar: busquedaTemp || undefined,
+      limite: filtrosSeguros.limite || 10, // Valor por defecto para "limite"
+      pagina: filtrosSeguros.pagina || 1  // Valor por defecto para "pagina"
     });
   };
 

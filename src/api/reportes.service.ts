@@ -1,4 +1,4 @@
-// api/reportes.service.ts
+
 import { utilidadesAutenticacion } from "@/lib/autenticacion";
 
 /** ====== Tipos base ====== */
