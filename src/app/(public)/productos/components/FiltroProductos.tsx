@@ -52,7 +52,10 @@ export default function FiltrosProductos({ filtros, onFiltrosChange, categorias,
 
   const limpiarFiltros = () => {
     setBusquedaTemp("");
-    onFiltrosChange({});
+    onFiltrosChange({
+      limite: 10, // Valor por defecto para "limite"
+      pagina: 1   // Valor por defecto para "pagina"
+    });
     setMostrarFiltros(false);
   };
 
