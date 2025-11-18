@@ -28,6 +28,10 @@ const nextConfig: NextConfig = {
     ],
     // Opcional: configurar formatos de imagen
     formats: ['image/webp', 'image/avif'],
+    domains: [
+      "multicenter.vtexassets.com", // Se añadió este dominio
+      "example.com" // Otros dominios permitidos
+    ],
   },
 };
 
