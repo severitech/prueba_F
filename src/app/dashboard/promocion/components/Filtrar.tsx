@@ -1,13 +1,13 @@
 // app/promociones/components/FiltrosPromociones.tsx
 "use client"
 
-import React from 'react';
-import { FiltrosPromocionesInterface } from '@/interface/promociones';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, X, Calendar } from 'lucide-react';
+import { FiltrosPromocionesInterface } from "@/interface/promocion";
+
 
 interface FiltrosPromocionesProps {
   filtros: FiltrosPromocionesInterface;

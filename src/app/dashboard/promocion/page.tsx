@@ -55,14 +55,33 @@ export default function PromocionesPage() {
   }, [filtros, paginacion.paginaActual]);
 
   // Manejar creación/edición
-  const manejarGuardarPromocion = async (datosPromocion: any) => {
+  const manejarGuardarPromocion = async (datosPromocion: Partial<Promocion>) => {
     try {
       let respuesta;
       
       if (promocionEditando) {
-        respuesta = await servicioPromociones.actualizarPromocion(promocionEditando.id, datosPromocion);
+        // Convertir monto a número si es string
+        if (!promocionEditando || typeof promocionEditando !== 'object') {
+          throw new Error("La promoción a editar no está definida o no es un objeto válido.");
+        }
+
+        const datosActualizacion: Partial<{ id: string; monto: number | undefined }> = {
+          ...promocionEditando,
+          id: String(promocionEditando.id), // Conversión a cadena
+          monto: promocionEditando.monto ? Number(promocionEditando.monto) : undefined // Conversión a número
+        };
+
+        respuesta = await servicioPromociones.actualizarPromocion(promocionEditando.id, datosActualizacion);
       } else {
-        respuesta = await servicioPromociones.crearPromocion(datosPromocion);
+        // Asegurar que monto sea un número
+        const datosCreacion = {
+          ...datosPromocion,
+          monto: typeof datosPromocion.monto === 'string' 
+            ? Number(datosPromocion.monto) 
+            : (datosPromocion.monto ?? 0)
+        };
+
+        respuesta = await servicioPromociones.crearPromocion(datosCreacion as any);
       }
 
       if (respuesta.exito) {

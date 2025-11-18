@@ -1,7 +1,7 @@
 // app/pago-exitoso/page.tsx
 "use client";
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { servicioPagos } from '@/api/carrito.service';
@@ -18,6 +18,14 @@ interface DatosPagoExitoso {
 }
 
 export default function PagoExitoso() {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <ContenidoPagoExitoso />
+    </Suspense>
+  );
+}
+
+function ContenidoPagoExitoso() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const sessionId = searchParams.get('session_id');
@@ -61,7 +69,7 @@ export default function PagoExitoso() {
 
   if (cargando) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-zinc-900 dark:to-zinc-800 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-green-50 to-blue-50 dark:from-zinc-900 dark:to-zinc-800 flex items-center justify-center p-4">
         <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-500 mx-auto mb-4"></div>
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
@@ -77,7 +85,7 @@ export default function PagoExitoso() {
 
   if (error || !datosPago?.pago_exitoso) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-zinc-900 dark:to-zinc-800 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-red-50 to-orange-50 dark:from-zinc-900 dark:to-zinc-800 flex items-center justify-center p-4">
         <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
           <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,7 +121,7 @@ export default function PagoExitoso() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-zinc-900 dark:to-zinc-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-green-50 to-blue-50 dark:from-zinc-900 dark:to-zinc-800 flex items-center justify-center p-4">
       <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl p-8 max-w-md w-full">
         {/* Icono de éxito */}
         <div className="text-center mb-6">
@@ -208,21 +216,21 @@ export default function PagoExitoso() {
           
           <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
             <div className="flex items-start gap-3">
-              <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium mt-0.5 flex-shrink-0">
+              <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium mt-0.5 shrink-0">
                 1
               </span>
               <span>Recibirás un email de confirmación</span>
             </div>
             
             <div className="flex items-start gap-3">
-              <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium mt-0.5 flex-shrink-0">
+              <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium mt-0.5 shrink-0">
                 2
               </span>
               <span>Procesaremos y prepararemos tu pedido</span>
             </div>
             
             <div className="flex items-start gap-3">
-              <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium mt-0.5 flex-shrink-0">
+              <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium mt-0.5 shrink-0">
                 3
               </span>
               <span>Te notificaremos cuando sea enviado</span>

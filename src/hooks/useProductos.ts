@@ -6,7 +6,7 @@ import {
   Producto,
   DatosCrearProducto,
   DatosActualizarProducto,
-  FiltrosProductos,
+  FiltrosProductosInterface,
 } from "@/interface/productos";
 import { servicioProductos } from "@/api/productos.service";
 
@@ -17,13 +17,13 @@ export function useProductos() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filtros, setFiltros] = useState<FiltrosProductos>({});
+  const [filtros, setFiltros] = useState<FiltrosProductosInterface>({} as FiltrosProductosInterface);
 
   /**
    * Cargar productos con filtros actuales
    */
   const cargarProductos = useCallback(
-    async (nuevosFiltros: FiltrosProductos = {}) => {
+    async (nuevosFiltros: FiltrosProductosInterface = {} as FiltrosProductosInterface ) => {
       setCargando(true);
       setError(null);
 
@@ -86,6 +86,7 @@ export function useProductos() {
 
       try {
         const resultado = await servicioProductos.actualizarProducto(
+          datosProducto.id,
           datosProducto
         );
 
@@ -160,7 +161,7 @@ export function useProductos() {
 
     const cargarDatosIniciales = async () => {
       if (mounted) {
-        await cargarProductos({});
+        await cargarProductos({} as FiltrosProductosInterface);
       }
     };
 

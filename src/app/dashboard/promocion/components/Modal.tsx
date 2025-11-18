@@ -105,7 +105,8 @@ export default function ModalPromocion({ open, onOpenChange, promocion, onGuarda
       const respuesta = await servicioProductos.obtenerProductos({
         buscar: busquedaProducto,
         estado: 'Activo',
-        limite: 50
+        limite: 50,
+        pagina: 1 // Valor predeterminado para cumplir con la interfaz
       });
       
       if (respuesta.exito) {

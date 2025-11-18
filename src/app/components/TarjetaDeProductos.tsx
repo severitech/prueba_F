@@ -18,6 +18,7 @@ import { FiltrosProductosInterface, Producto } from "@/interface/productos";
 import { useState } from "react";
 import FiltrosProductos from "../(public)/productos/components/FiltroProductos";
 import { usarCarrito } from "@/context/CarritoContexto";
+import Image from "next/image";
 
 // Datos de ejemplo para categorías y subcategorías
 const categoriasEjemplo = [
@@ -103,7 +104,12 @@ export default function TarjetaDeProductos({
     return (
       <div className="text-center py-12">
         <p className="text-destructive mb-4">Error: {error}</p>
-        <Button onClick={() => cargarProductos({})} variant="outline">
+        <Button
+          onClick={() =>
+            cargarProductos({ limite: 10, pagina: 1 }) // Valores predeterminados para cumplir con la interfaz
+          }
+          variant="outline"
+        >
           Reintentar
         </Button>
       </div>
@@ -139,7 +145,7 @@ export default function TarjetaDeProductos({
           <p className="text-muted-foreground mb-4">
             No se encontraron productos con los filtros aplicados
           </p>
-          <Button onClick={() => cargarProductos({})} variant="outline">
+          <Button onClick={() => cargarProductos({ limite: 10, pagina: 1 })} variant="outline">
             Mostrar todos los productos
           </Button>
         </div>
@@ -194,7 +200,7 @@ function ProductoFlipCard({ producto }: { producto: Producto }) {
               <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
             </div>
           )}
-          <img
+          <Image
             src={imagenPrincipal}
             alt={producto.descripcion}
             className={`w-full h-full object-cover transition-opacity duration-300 ${
@@ -203,6 +209,8 @@ function ProductoFlipCard({ producto }: { producto: Producto }) {
             onError={manejarErrorImagen}
             onLoad={manejarCargaImagen}
             loading="lazy"
+            width={500} // Ajustar según sea necesario
+            height={500} // Ajustar según sea necesario
           />
         </div>
 
@@ -221,7 +229,7 @@ function ProductoFlipCard({ producto }: { producto: Producto }) {
 
         {/* Información del producto */}
         <CardFlipHeader className="px-4 mt-3">
-          <CardFlipTitle className="line-clamp-2 text-base leading-tight min-h-[2.5rem]">
+          <CardFlipTitle className="line-clamp-2 text-base leading-tight min-h-10">
             {producto.descripcion}
           </CardFlipTitle>
           <p className="text-xl font-bold mt-2">
@@ -273,7 +281,7 @@ function ProductoFlipCard({ producto }: { producto: Producto }) {
 
         <CardFlipContent className="flex-1 overflow-auto space-y-3 px-4 py-2">
           <div className="flex items-start gap-3">
-            <Box className="text-primary w-5 h-5 mt-0.5 flex-shrink-0" />
+            <Box className="text-primary w-5 h-5 mt-0.5 shrink-0" />
             <div className="flex-1">
               <h4 className="font-semibold text-sm">Descripción</h4>
               <p className="text-sm text-muted-foreground line-clamp-2">
@@ -283,7 +291,7 @@ function ProductoFlipCard({ producto }: { producto: Producto }) {
           </div>
 
           <div className="flex items-start gap-3">
-            <Box className="text-primary w-5 h-5 mt-0.5 flex-shrink-0" />
+            <Box className="text-primary w-5 h-5 mt-0.5 shrink-0" />
             <div className="flex-1">
               <h4 className="font-semibold text-sm">Precio</h4>
               <p className="text-sm text-muted-foreground">
@@ -293,7 +301,7 @@ function ProductoFlipCard({ producto }: { producto: Producto }) {
           </div>
 
           <div className="flex items-start gap-3">
-            <Box className="text-primary w-5 h-5 mt-0.5 flex-shrink-0" />
+            <Box className="text-primary w-5 h-5 mt-0.5 shrink-0" />
             <div className="flex-1">
               <h4 className="font-semibold text-sm">Disponibilidad</h4>
               <p className="text-sm text-muted-foreground">
@@ -305,7 +313,7 @@ function ProductoFlipCard({ producto }: { producto: Producto }) {
           </div>
 
           <div className="flex items-start gap-3">
-            <Box className="text-primary w-5 h-5 mt-0.5 flex-shrink-0" />
+            <Box className="text-primary w-5 h-5 mt-0.5 shrink-0" />
             <div className="flex-1">
               <h4 className="font-semibold text-sm">Estado</h4>
               <p className="text-sm text-muted-foreground">
@@ -317,7 +325,7 @@ function ProductoFlipCard({ producto }: { producto: Producto }) {
           </div>
 
           <div className="flex items-start gap-3">
-            <Box className="text-primary w-5 h-5 mt-0.5 flex-shrink-0" />
+            <Box className="text-primary w-5 h-5 mt-0.5 shrink-0" />
             <div className="flex-1">
               <h4 className="font-semibold text-sm">Categoría</h4>
               <p className="text-sm text-muted-foreground">

@@ -6,7 +6,6 @@ import {
   ScopeIA,
   PanelSeriesResponse,
   PanelPredItem,
-  PanelPredResponse,
 } from "@/api/random-forest.service";
 import FiltrarPanel from "./components/Filtrar";
 import GraficoPanel from "./components/Grafico";
