@@ -7,7 +7,7 @@ import { utilidadesAutenticacion } from '@/lib/autenticacion'
  */
 class ServicioAutenticacion {
   // URL base de la API - se puede configurar con variables de entorno
-  private urlBase = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'
+  private urlBase = process.env.NEXT_PUBLIC_API_URL || 'https://web-production-de7b5.up.railway.app/api'
 
   /**
    * Inicia sesión con email y password

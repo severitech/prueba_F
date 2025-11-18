@@ -6,7 +6,7 @@ import { utilidadesAutenticacion } from '@/lib/autenticacion'
  * Servicio para manejar todas las operaciones de productos con el backend
  */
 class ServicioProductos {
-  private urlBase = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'
+  private urlBase = process.env.NEXT_PUBLIC_API_URL || 'https://web-production-de7b5.up.railway.app/api'
 
   /**
    * Obtener headers de autenticación
