@@ -20,7 +20,7 @@ export default function FiltrosProductos({
   };
 
   const limpiarFiltros = () => {
-    setFiltrosLocales({});
+    setFiltrosLocales({} as FiltrosProductosInterface);
     onLimpiarFiltros();
   };
 

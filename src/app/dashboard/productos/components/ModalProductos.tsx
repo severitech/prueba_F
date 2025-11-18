@@ -28,7 +28,14 @@ interface ModalProductoProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   producto: Producto | null;
-  onGuardar: (datos: any) => void;
+  onGuardar: (datos: {
+    descripcion: string;
+    precio: number;
+    stock: number;
+    estado: 'Activo' | 'Inactivo';
+    subcategoria_id: number;
+    imagenes: string[];
+  }) => void;
 }
 
 interface ImagenProducto {
@@ -64,7 +71,7 @@ export default function ModalProducto({ open, onOpenChange, producto, onGuardar 
         descripcion: producto.descripcion,
         precio: producto.precio.toString(),
         stock: producto.stock.toString(),
-        estado: producto.estado || 'Activo',
+        estado: producto.estado === "Activo" || producto.estado === "Inactivo" ? producto.estado : "Activo",
         subcategoria_id: subcategoriaId?.toString() || '',
       });
       

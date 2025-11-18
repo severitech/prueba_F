@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Search, Filter, X } from 'lucide-react';
-import { Producto } from '@/interface/productos';
 
 interface FiltrosGarantiasProps {
   filtros: FiltrosGarantiasInterface;
@@ -68,10 +67,24 @@ export default function FiltrosGarantias({
             id="producto"
             type="number"
             placeholder="Filtrar por producto..."
-            value={typeof filtros.producto === 'object' ? filtros.producto?.id || '' : filtros.producto || ''}
+            value={filtros.producto?.id || ''} // Usar el ID del producto
             onChange={(e) => onFiltrosChange({ 
               ...filtros, 
-              producto: e.target.value ? { id: parseInt(e.target.value) } as Producto : undefined
+              producto: e.target.value
+                ? {
+                    id: parseInt(e.target.value),
+                    descripcion: '',
+                    precio: 0,
+                    stock: 0,
+                    imagenes: [],
+                    estado: '',
+                    subcategoria: { 
+                      id: 0, 
+                      descripcion: '', 
+                      categoria: { id: 0, descripcion: '' } // Agregar propiedad categoria requerida
+                    }
+                  }
+                : undefined // Crear un objeto Producto con valores predeterminados
             })}
           />
         </div>

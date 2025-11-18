@@ -14,7 +14,8 @@ export default function ProductosPage() {
   const [error, setError] = useState('');
   const [mostrarModal, setMostrarModal] = useState(false);
   const [productoEditando, setProductoEditando] = useState<Producto | null>(null);
-  const [filtros, setFiltros] = useState<FiltrosProductosInterface>({});
+  // Inicializamos con un objeto vacío tipado para cumplir la interfaz
+  const [filtros, setFiltros] = useState<FiltrosProductosInterface>({} as FiltrosProductosInterface);
   const [paginacion, setPaginacion] = useState({
     total: 0,
     paginaActual: 1,
@@ -22,7 +23,6 @@ export default function ProductosPage() {
     limite: 10
   });
 
-  // Cargar productos
   const cargarProductos = async () => {
     try {
       setCargando(true);
@@ -36,8 +36,10 @@ export default function ProductosPage() {
 
       if (respuesta.exito) {
         setProductos(respuesta.datos);
-        if (respuesta.mensaje) {
-          setPaginacion(respuesta.mensaje);
+        
+        // CORRECCIÓN: Usar paginacion en lugar de mensaje
+        if (respuesta.paginacion) {
+          setPaginacion(respuesta.paginacion);
         }
       } else {
         setError(respuesta.mensaje || 'Error al cargar productos');
@@ -54,15 +56,38 @@ export default function ProductosPage() {
     cargarProductos();
   }, [filtros, paginacion.paginaActual]);
 
-  // Manejar creación/edición
-  const manejarGuardarProducto = async (datosProducto: any) => {
+  const manejarGuardarProducto = async (datosProducto: {
+    descripcion: string;
+    precio: number;
+    stock: number;
+    estado: 'Activo' | 'Inactivo';
+    subcategoria_id: number;
+    imagenes: string[];
+  }) => {
     try {
       let respuesta;
       
       if (productoEditando) {
-        respuesta = await servicioProductos.actualizarProducto(productoEditando.id, datosProducto);
+        // CORRECCIÓN: Para actualizar, no enviar imagenes si no hay nuevas
+        const datosActualizarProducto = {
+          descripcion: datosProducto.descripcion,
+          precio: datosProducto.precio,
+          stock: datosProducto.stock,
+          estado: datosProducto.estado,
+          subcategoria_id: datosProducto.subcategoria_id
+        };
+        respuesta = await servicioProductos.actualizarProducto(productoEditando.id, datosActualizarProducto);
       } else {
-        respuesta = await servicioProductos.crearProducto(datosProducto);
+        // Unificar creación enviando objeto DatosCrearProducto (el servicio espera JSON)
+        const datosCrearProducto = {
+          descripcion: datosProducto.descripcion,
+          precio: datosProducto.precio,
+          stock: datosProducto.stock,
+          estado: datosProducto.estado,
+          subcategoria_id: datosProducto.subcategoria_id,
+          imagenes: [] as File[] // enviar array vacío de Files
+        };
+        respuesta = await servicioProductos.crearProducto(datosCrearProducto);
       }
 
       if (respuesta.exito) {
@@ -77,14 +102,12 @@ export default function ProductosPage() {
     }
   };
 
-  // Manejar eliminación
   const manejarEliminarProducto = async (id: number) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-      return;
-    }
-
+    if (!confirm('¿Estás seguro de que quieres eliminar este producto?')) return;
+    
     try {
-      const respuesta = await servicioProductos.eliminarProducto(id, false);
+      // CORRECCIÓN: Usar el método correcto para eliminar
+      const respuesta = await servicioProductos.eliminarProducto(id);
       
       if (respuesta.exito) {
         await cargarProductos();
@@ -97,13 +120,16 @@ export default function ProductosPage() {
     }
   };
 
-  // Manejar activación/desactivación
   const manejarCambiarEstado = async (id: number, estado: 'Activo' | 'Inactivo') => {
     try {
-      const respuesta = estado === 'Activo' 
-        ? await servicioProductos.activarProducto(id)
-        : await servicioProductos.eliminarProducto(id, false);
-
+      let respuesta;
+      
+      if (estado === 'Activo') {
+        respuesta = await servicioProductos.activarProducto(id);
+      } else {
+        respuesta = await servicioProductos.actualizarProducto(id, { estado: 'Inactivo' });
+      }
+      
       if (respuesta.exito) {
         await cargarProductos();
       } else {
@@ -115,7 +141,6 @@ export default function ProductosPage() {
     }
   };
 
-  // Modal functions
   const abrirModalCrear = () => {
     setProductoEditando(null);
     setMostrarModal(true);
@@ -131,10 +156,19 @@ export default function ProductosPage() {
     setProductoEditando(null);
   };
 
-  // Paginación
   const cambiarPagina = (pagina: number) => {
     setPaginacion(prev => ({ ...prev, paginaActual: pagina }));
   };
+
+  const onLimpiarFiltros = () => {
+    setFiltros({} as FiltrosProductosInterface);
+    setPaginacion(prev => ({ ...prev, paginaActual: 1 }));
+  };
+
+  // Resetear a página 1 cuando cambian los filtros
+  useEffect(() => {
+    setPaginacion(prev => ({ ...prev, paginaActual: 1 }));
+  }, [filtros]);
 
   if (cargando && productos.length === 0) {
     return (
@@ -154,7 +188,6 @@ export default function ProductosPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -173,14 +206,12 @@ export default function ProductosPage() {
         </button>
       </div>
 
-      {/* Filtros */}
       <FiltrosProductos
         filtros={filtros}
         onFiltrosChange={setFiltros}
-        onLimpiarFiltros={() => setFiltros({})}
+        onLimpiarFiltros={onLimpiarFiltros}
       />
 
-      {/* Error */}
       {error && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
           <div className="flex items-center">
@@ -201,7 +232,6 @@ export default function ProductosPage() {
         </div>
       )}
 
-      {/* Lista de Productos */}
       <ListaProductos
         productos={productos}
         cargando={cargando}
@@ -212,7 +242,6 @@ export default function ProductosPage() {
         onCambiarPagina={cambiarPagina}
       />
 
-      {/* Modal con shadcn */}
       <ModalProducto
         open={mostrarModal}
         onOpenChange={setMostrarModal}

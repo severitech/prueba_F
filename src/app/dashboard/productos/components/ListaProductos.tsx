@@ -86,7 +86,7 @@ export default function ListaProductos({
                   Stock: <span className="font-medium">{producto.stock}</span>
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Subcategoría: <span className="font-medium">{producto.subcategoria_nombre}</span>
+                  Subcategoría: <span className="font-medium">{producto.subcategoria.descripcion}</span>
                 </p>
               </div>
 
